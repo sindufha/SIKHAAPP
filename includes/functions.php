@@ -1,6 +1,57 @@
 <?php
 declare(strict_types=1);
 
+final class DatabaseSessionHandler implements SessionHandlerInterface
+{
+    public function __construct(private PDO $pdo)
+    {
+    }
+
+    public function open(string $path, string $name): bool
+    {
+        return true;
+    }
+
+    public function close(): bool
+    {
+        return true;
+    }
+
+    public function read(string $id): string|false
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT data FROM sessions WHERE id = ? AND expires_at > CURRENT_TIMESTAMP LIMIT 1'
+        );
+        $stmt->execute([$id]);
+        $data = $stmt->fetchColumn();
+        return $data === false ? '' : (string)$data;
+    }
+
+    public function write(string $id, string $data): bool
+    {
+        $lifetime = max(1, (int)ini_get('session.gc_maxlifetime'));
+        $expiresAt = date('Y-m-d H:i:s', time() + $lifetime);
+        $stmt = $this->pdo->prepare(
+            'INSERT INTO sessions (id, data, expires_at) VALUES (?, ?, ?)
+             ON DUPLICATE KEY UPDATE data = VALUES(data), expires_at = VALUES(expires_at)'
+        );
+        return $stmt->execute([$id, $data, $expiresAt]);
+    }
+
+    public function destroy(string $id): bool
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM sessions WHERE id = ?');
+        return $stmt->execute([$id]);
+    }
+
+    public function gc(int $max_lifetime): int|false
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM sessions WHERE expires_at <= CURRENT_TIMESTAMP');
+        $stmt->execute();
+        return $stmt->rowCount();
+    }
+}
+
 if (session_status() !== PHP_SESSION_ACTIVE) {
     ini_set('session.use_strict_mode', '1');
     $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
@@ -12,6 +63,10 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
         'httponly' => true,
         'samesite' => 'Lax',
     ]);
+    $useDatabaseSessions = getenv('SESSION_DRIVER') === 'database' || getenv('VERCEL') === '1';
+    if ($useDatabaseSessions && isset($pdo) && $pdo instanceof PDO) {
+        session_set_save_handler(new DatabaseSessionHandler($pdo), true);
+    }
     session_start();
 }
 

@@ -11,11 +11,14 @@ if (!headers_sent()) {
     header('Cache-Control: no-store, max-age=0');
 }
 
-$host = getenv('DB_HOST') ?: '127.0.0.1';
-$port = getenv('DB_PORT') ?: '3306';
-$db = getenv('DB_NAME') ?: 'sikha_db';
-$user = getenv('DB_USER') ?: 'root';
+$host = getenv('DB_HOST') ?: (getenv('MYSQLHOST') ?: '127.0.0.1');
+$port = getenv('DB_PORT') ?: (getenv('MYSQLPORT') ?: '3306');
+$db = getenv('DB_NAME') ?: (getenv('MYSQLDATABASE') ?: 'sikha_db');
+$user = getenv('DB_USER') ?: (getenv('MYSQLUSER') ?: 'root');
 $passwordEnv = getenv('DB_PASSWORD');
+if ($passwordEnv === false) {
+    $passwordEnv = getenv('MYSQLPASSWORD');
+}
 $pass = $passwordEnv === false ? '' : $passwordEnv;
 $charset = 'utf8mb4';
 

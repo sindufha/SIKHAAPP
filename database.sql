@@ -1,13 +1,17 @@
 -- SIKHA - skema database untuk instalasi baru
 -- Kompatibel dengan MySQL 5.7+ / 8.x dan MariaDB yang mendukung JSON.
-
-CREATE DATABASE IF NOT EXISTS sikha_db
-    CHARACTER SET utf8mb4
-    COLLATE utf8mb4_unicode_ci;
-
-USE sikha_db;
+-- Impor file ini setelah memilih database tujuan.
 
 SET NAMES utf8mb4;
+
+CREATE TABLE IF NOT EXISTS sessions (
+    id VARCHAR(128) NOT NULL,
+    data MEDIUMBLOB NOT NULL,
+    expires_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_sessions_expires_at (expires_at)
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS users (
     id CHAR(36) NOT NULL,

@@ -11,7 +11,7 @@ SIKHA adalah aplikasi presensi siswa berbasis PHP dan MySQL untuk SDI Khadijah S
 
 ## Instalasi
 
-1. Buat database dengan mengimpor `database.sql`.
+1. Buat dan pilih database `sikha_db`, lalu impor `database.sql` ke database tersebut.
 2. Arahkan document root web server ke folder proyek atau letakkan folder ini di bawah document root.
 3. Atur variabel lingkungan database bila tidak menggunakan nilai bawaan:
 

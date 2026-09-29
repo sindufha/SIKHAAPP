@@ -17,6 +17,7 @@
 /coverage/
 /test-results/
 /playwright-report/
+/.vercel/
 
 # Database dumps created locally (keep the tracked installation schema)
 *.sql.gz
