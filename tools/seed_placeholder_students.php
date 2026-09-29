@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 $url = getenv('RAILWAY_IMPORT_URL');
-$perClass = max(1, min(100, (int)(getenv('STUDENTS_PER_CLASS') ?: 20)));
+$perClass = max(1, min(100, (int)(getenv('STUDENTS_PER_CLASS') ?: 7)));
 if ($url === false || $url === '') {
     fwrite(STDERR, "RAILWAY_IMPORT_URL wajib diisi.\n");
     exit(1);
