@@ -1,0 +1,33 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies
+/vendor/
+/node_modules/
+
+# Runtime and generated files
+*.log
+*.pid
+*.tmp
+*.cache
+/tmp/
+/cache/
+/coverage/
+/test-results/
+/playwright-report/
+
+# Database dumps created locally (keep the tracked installation schema)
+*.sql.gz
+*.sql.zip
+*.bak
+
+# IDE and operating-system files
+/.idea/
+/.vscode/
+*.suo
+*.user
+.DS_Store
+Thumbs.db
+Desktop.ini
