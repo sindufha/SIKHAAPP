@@ -36,6 +36,14 @@ try {
         ]
     );
     $pdo->exec($schema);
+    $adminPassword = getenv('ADMIN_BOOTSTRAP_PASSWORD');
+    $passwordRotated = false;
+    if ($adminPassword !== false && $adminPassword !== '') {
+        $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE username = 'admin'");
+        $stmt->execute([password_hash($adminPassword, PASSWORD_DEFAULT)]);
+        $pdo->exec('DELETE FROM sessions');
+        $passwordRotated = $stmt->rowCount() === 1;
+    }
     $tableCount = (int)$pdo->query(
         'SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE()'
     )->fetchColumn();
@@ -48,6 +56,7 @@ try {
         'tables' => $tableCount,
         'adminAccounts' => $adminCount,
         'activeSessions' => $sessionCount,
+        'adminPasswordRotated' => $passwordRotated,
     ], JSON_THROW_ON_ERROR), PHP_EOL;
 } catch (Throwable $error) {
     fwrite(STDERR, "Impor database gagal: {$error->getMessage()}\n");
