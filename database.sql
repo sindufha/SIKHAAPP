@@ -56,6 +56,21 @@ CREATE TABLE IF NOT EXISTS kelas (
         ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
+-- Kelas SD standar; wali kelas dapat ditetapkan dari panel admin.
+INSERT IGNORE INTO kelas (id, nama, wali_kelas_id) VALUES
+    (UUID(), 'Kelas 1A', NULL),
+    (UUID(), 'Kelas 1B', NULL),
+    (UUID(), 'Kelas 2A', NULL),
+    (UUID(), 'Kelas 2B', NULL),
+    (UUID(), 'Kelas 3A', NULL),
+    (UUID(), 'Kelas 3B', NULL),
+    (UUID(), 'Kelas 4A', NULL),
+    (UUID(), 'Kelas 4B', NULL),
+    (UUID(), 'Kelas 5A', NULL),
+    (UUID(), 'Kelas 5B', NULL),
+    (UUID(), 'Kelas 6A', NULL),
+    (UUID(), 'Kelas 6B', NULL);
+
 CREATE TABLE IF NOT EXISTS siswa (
     id CHAR(36) NOT NULL,
     nis VARCHAR(50) NOT NULL,
