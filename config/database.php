@@ -28,6 +28,10 @@ $options = [
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     PDO::ATTR_EMULATE_PREPARES   => false,
 ];
+if (getenv('VERCEL') === '1') {
+    // Keep the TCP connection alive between warm serverless invocations.
+    $options[PDO::ATTR_PERSISTENT] = true;
+}
 
 try {
     $pdo = new PDO($dsn, $user, $pass, $options);

@@ -4,13 +4,20 @@ require_once '../includes/functions.php';
 requireRole('ADMIN');
 
 // Statistik
-$totalSiswa = $pdo->query("SELECT COUNT(*) FROM siswa WHERE is_active = 1")->fetchColumn();
-$totalKelas = $pdo->query("SELECT COUNT(*) FROM kelas")->fetchColumn();
-$totalUser = $pdo->query("SELECT COUNT(*) FROM users WHERE is_active = 1")->fetchColumn();
 $today = date('Y-m-d');
-$stmt = $pdo->prepare("SELECT COUNT(*) FROM presensi WHERE tanggal = ?");
-$stmt->execute([$today]);
-$totalPresensiHariIni = $stmt->fetchColumn();
+$stats = $pdo->prepare(
+    "SELECT
+        (SELECT COUNT(*) FROM siswa WHERE is_active = 1) AS total_siswa,
+        (SELECT COUNT(*) FROM kelas) AS total_kelas,
+        (SELECT COUNT(*) FROM users WHERE is_active = 1) AS total_user,
+        (SELECT COUNT(*) FROM presensi WHERE tanggal = ?) AS presensi_hari_ini"
+);
+$stats->execute([$today]);
+$stats = $stats->fetch();
+$totalSiswa = (int)$stats['total_siswa'];
+$totalKelas = (int)$stats['total_kelas'];
+$totalUser = (int)$stats['total_user'];
+$totalPresensiHariIni = (int)$stats['presensi_hari_ini'];
 
 // Hitung gender distribution
 $stmt = $pdo->query("SELECT jenis_kelamin, COUNT(*) as count FROM siswa WHERE is_active = 1 GROUP BY jenis_kelamin");
@@ -39,13 +46,30 @@ $pctManual = $totalMetode > 0 ? round($metodeData['manual'] / $totalMetode * 100
 
 // Tren kehadiran 6 pekan terakhir
 $trenData = [];
+$currentWeek = new DateTimeImmutable('monday this week');
+$weekStarts = [];
 for ($i = 5; $i >= 0; $i--) {
-    $weekStartDate = (new DateTimeImmutable('monday this week'))->modify("-$i weeks");
+    $weekStartDate = $currentWeek->modify("-$i weeks");
+    $weekStarts[] = $weekStartDate;
+}
+$trendStart = $weekStarts[0]->format('Y-m-d');
+$trendEnd = $weekStarts[5]->modify('+6 days')->format('Y-m-d');
+$trendStmt = $pdo->prepare(
+    "SELECT YEARWEEK(tanggal, 1) AS week_key,
+            COUNT(*) AS total,
+            SUM(status IN ('HADIR', 'TERLAMBAT')) AS hadir
+     FROM presensi
+     WHERE tanggal BETWEEN ? AND ?
+     GROUP BY YEARWEEK(tanggal, 1)"
+);
+$trendStmt->execute([$trendStart, $trendEnd]);
+$trendStats = [];
+foreach ($trendStmt->fetchAll() as $row) {
+    $trendStats[(string)$row['week_key']] = $row;
+}
+foreach ($weekStarts as $weekStartDate) {
     $weekStart = $weekStartDate->format('Y-m-d');
-    $weekEnd = $weekStartDate->modify('+6 days')->format('Y-m-d');
-    $stmt = $pdo->prepare("SELECT COUNT(*) AS total, SUM(status IN ('HADIR', 'TERLAMBAT')) AS hadir FROM presensi WHERE tanggal BETWEEN ? AND ?");
-    $stmt->execute([$weekStart, $weekEnd]);
-    $weekStats = $stmt->fetch();
+    $weekStats = $trendStats[$weekStartDate->format('oW')] ?? ['total' => 0, 'hadir' => 0];
     $pctHadir = (int)$weekStats['total'] > 0 ? round((int)$weekStats['hadir'] / (int)$weekStats['total'] * 100) : 0;
     $trenData[] = [
         'week' => $weekStartDate->format('d/m'),

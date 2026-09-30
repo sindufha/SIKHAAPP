@@ -122,6 +122,10 @@ function requireLogin(): void
 
     global $pdo;
     if (isset($pdo) && $pdo instanceof PDO) {
+        $checkedAt = (int)($_SESSION['_auth_checked_at'] ?? 0);
+        if ($checkedAt > time() - 60 && isset($_SESSION['role'], $_SESSION['username'], $_SESSION['nama'])) {
+            return;
+        }
         $stmt = $pdo->prepare('SELECT username, nama, role, is_active FROM users WHERE id = ? LIMIT 1');
         $stmt->execute([$_SESSION['user_id']]);
         $user = $stmt->fetch();
@@ -132,6 +136,7 @@ function requireLogin(): void
         $_SESSION['username'] = $user['username'];
         $_SESSION['nama'] = $user['nama'];
         $_SESSION['role'] = $user['role'];
+        $_SESSION['_auth_checked_at'] = time();
     }
 }
 
