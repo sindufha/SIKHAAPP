@@ -33,7 +33,8 @@ if (!is_array($input)) {
 }
 
 $qrCode = is_string($input['qr_code'] ?? null) ? trim($input['qr_code']) : '';
-if ($qrCode === '' || !preg_match('/^[a-f0-9]{40}$/i', $qrCode)) {
+// Keep existing 20-character cards valid alongside current 40-character tokens.
+if ($qrCode === '' || !preg_match('/^(?:[a-f0-9]{20}|[a-f0-9]{40})$/i', $qrCode)) {
     jsonResponse(['success' => false, 'message' => 'QR Code tidak valid.'], 400);
 }
 

@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         if (!$kelasCheck->fetchColumn()) abortRequest('Kelas tidak ditemukan.');
 
         if ($_POST['action'] === 'add') {
-            $qr = bin2hex(random_bytes(10));
+            $qr = bin2hex(random_bytes(20));
             $stmt = $pdo->prepare("INSERT INTO siswa (id, nis, nama, kelas_id, qr_code, jenis_kelamin, tempat_lahir, tanggal_lahir, alamat) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([$nis, $nama, $kelas_id, $qr, $jk, $tempat_lahir, $tanggal_lahir, $alamat]);
             logAudit($pdo, 'CREATE_SISWA', "Menambah siswa $nama");
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         redirect(appUrl('admin/siswa.php'));
     }
     if ($_POST['action'] === 'reset_qr') {
-        $qr = bin2hex(random_bytes(10));
+        $qr = bin2hex(random_bytes(20));
         $pdo->prepare("UPDATE siswa SET qr_code = ? WHERE id = ?")->execute([$qr, postString('id', 36)]);
         logAudit($pdo, 'RESET_QR_SISWA', 'Reset QR siswa');
         redirect(appUrl('admin/siswa.php'));
